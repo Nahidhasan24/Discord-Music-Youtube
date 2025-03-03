@@ -15,8 +15,7 @@ A feature-rich Discord bot that plays YouTube videos in a voice channel using `y
 1. Clone the repository:
 
    ```sh
-   git clone https://github.com/your-username/your-repo.git
-   cd your-repo
+   git clone https://github.com/Nahidhasan24/Discord-Music-Youtube.git
    ```
 
 2. Install dependencies:
