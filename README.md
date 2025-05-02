@@ -21,7 +21,7 @@ A feature-rich Discord bot that plays YouTube videos in a voice channel using `y
 2. Install dependencies:
 
    ```sh
-   pip install -r rrequirementstxt
+   pip install -r requirementstxt
    ```
 
 3. Create a `.env` file and add the following:
