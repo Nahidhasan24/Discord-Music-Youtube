@@ -15,7 +15,7 @@ if not DISCORD_BOT_TOKEN:
     raise ValueError("DISCORD_BOT_TOKEN not set in environment variables!")
 
 # Cookies file path
-COOKIES_FILE = "google_cookies.json"  # Make sure this file exists in the same folder
+COOKIES_FILE = "cookies.txt"   # Make sure this file exists in the same folder
 
 intents = discord.Intents.default()
 intents.message_content = True
