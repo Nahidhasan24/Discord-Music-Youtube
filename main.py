@@ -14,9 +14,6 @@ DISCORD_BOT_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
 if not DISCORD_BOT_TOKEN:
     raise ValueError("DISCORD_BOT_TOKEN not set in environment variables!")
 
-# Cookies file path
-COOKIES_FILE = "cookies.txt"  # Make sure this exists
-
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -45,8 +42,6 @@ class YTDLSource(discord.PCMVolumeTransformer):
             'format': 'bestaudio/best',
             'quiet': True,
             'noplaylist': True,
-            'cookiefile': COOKIES_FILE,  # Use the cookies.txt
-            'extract_flat': False,
         }
 
         def extract():
@@ -58,6 +53,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         except Exception as e:
             return None, f'yt-dlp error: {e}'
 
+        # pick playable audio url
         if 'url' in data:
             audio_url = data['url']
         elif 'formats' in data and len(data['formats']) > 0:
