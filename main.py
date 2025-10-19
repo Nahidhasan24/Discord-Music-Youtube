@@ -3,8 +3,8 @@ from discord.ext import commands
 import asyncio
 from collections import deque
 import os
-import json
 import logging
+import yt_dlp
 
 # Logging
 logging.basicConfig(level=logging.INFO)
@@ -13,6 +13,9 @@ logging.basicConfig(level=logging.INFO)
 DISCORD_BOT_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
 if not DISCORD_BOT_TOKEN:
     raise ValueError("DISCORD_BOT_TOKEN not set in environment variables!")
+
+# Cookies file path
+COOKIES_FILE = "google_cookies.json"  # Make sure this file exists in the same folder
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -38,38 +41,23 @@ class YTDLSource(discord.PCMVolumeTransformer):
     async def from_url(cls, url, *, loop=None, stream=True):
         loop = loop or asyncio.get_event_loop()
 
-        process = await asyncio.create_subprocess_exec(
-            'yt-dlp',
-            '-f', 'bestaudio',   # audio-only
-            '-j',
-            '--no-playlist',
-            url,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
-        )
-        stdout, stderr = await process.communicate()
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'quiet': True,
+            'noplaylist': True,
+            'cookiefile': COOKIES_FILE,
+            'extract_flat': False,
+        }
 
-        # Decode stderr safely
-        try:
-            err_text = stderr.decode('utf-8')
-        except UnicodeDecodeError:
-            err_text = stderr.decode('cp1252', errors='replace')
-
-        if process.returncode != 0:
-            return None, f'yt-dlp error:\n{err_text}'
-
-        # Decode stdout safely
-        try:
-            data_json = stdout.decode('utf-8')
-        except UnicodeDecodeError:
-            data_json = stdout.decode('cp1252', errors='replace')
+        def extract():
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                return ydl.extract_info(url, download=False)
 
         try:
-            data = json.loads(data_json)
-        except json.JSONDecodeError:
-            return None, f'Failed to parse yt-dlp JSON:\n{data_json}'
+            data = await loop.run_in_executor(None, extract)
+        except Exception as e:
+            return None, f'yt-dlp error: {e}'
 
-        # Extract audio URL
         if 'url' in data:
             audio_url = data['url']
         elif 'formats' in data and len(data['formats']) > 0:
