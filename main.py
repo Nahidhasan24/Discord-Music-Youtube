@@ -15,7 +15,7 @@ if not DISCORD_BOT_TOKEN:
     raise ValueError("DISCORD_BOT_TOKEN not set in environment variables!")
 
 # Cookies file path
-COOKIES_FILE = "cookies.txt"   # Make sure this file exists in the same folder
+COOKIES_FILE = "cookies.txt"  # Make sure this exists
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -35,7 +35,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
     def __init__(self, source, *, data, volume=0.5):
         super().__init__(source, volume)
         self.data = data
-        self.title = data.get('title')
+        self.title = data.get('title', 'Unknown Title')
 
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=True):
@@ -45,7 +45,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
             'format': 'bestaudio/best',
             'quiet': True,
             'noplaylist': True,
-            'cookiefile': COOKIES_FILE,
+            'cookiefile': COOKIES_FILE,  # Use the cookies.txt
             'extract_flat': False,
         }
 
@@ -97,21 +97,21 @@ async def on_ready():
     print(f'Logged in as {bot.user.name}')
 
 # --- Bot commands ---
-@bot.command(name='join', help='Joins the voice channel')
+@bot.command(name='join')
 async def join(ctx):
     if not ctx.author.voice:
         await ctx.send(f'{ctx.author.name}, you are not connected to a voice channel.')
         return
     await ctx.author.voice.channel.connect()
 
-@bot.command(name='leave', help='Leaves the voice channel')
+@bot.command(name='leave')
 async def leave(ctx):
     if ctx.voice_client:
         queues.pop(ctx.guild.id, None)
         await ctx.voice_client.disconnect()
         await ctx.send('Left the voice channel 🚪')
 
-@bot.command(name='play', help='Plays a song from YouTube or adds it to the queue')
+@bot.command(name='play')
 async def play(ctx, url: str):
     if not ctx.author.voice:
         await ctx.send(f'{ctx.author.name}, you are not connected to a voice channel.')
@@ -129,26 +129,26 @@ async def play(ctx, url: str):
     if not ctx.voice_client.is_playing():
         await play_next(ctx)
 
-@bot.command(name='pause', help='Pauses the current song')
+@bot.command(name='pause')
 async def pause(ctx):
     if ctx.voice_client and ctx.voice_client.is_playing():
         ctx.voice_client.pause()
         await ctx.send('Paused ⏸')
 
-@bot.command(name='resume', help='Resumes the current song')
+@bot.command(name='resume')
 async def resume(ctx):
     if ctx.voice_client and ctx.voice_client.is_paused():
         ctx.voice_client.resume()
         await ctx.send('Resumed ▶')
 
-@bot.command(name='stop', help='Stops the current song and clears the queue')
+@bot.command(name='stop')
 async def stop(ctx):
     if ctx.voice_client and ctx.voice_client.is_playing():
         ctx.voice_client.stop()
     queues.pop(ctx.guild.id, None)
     await ctx.send('Stopped ⏹')
 
-@bot.command(name='queue', help='Shows the current queue')
+@bot.command(name='queue')
 async def show_queue(ctx):
     if queues.get(ctx.guild.id) and queues[ctx.guild.id]:
         queue_list = '\n'.join([f'{i + 1}. {url}' for i, url in enumerate(queues[ctx.guild.id])])
@@ -156,7 +156,7 @@ async def show_queue(ctx):
     else:
         await ctx.send('The queue is empty.')
 
-@bot.command(name='skip', help='Skips the current song')
+@bot.command(name='skip')
 async def skip(ctx):
     if ctx.voice_client and ctx.voice_client.is_playing():
         ctx.voice_client.stop()
