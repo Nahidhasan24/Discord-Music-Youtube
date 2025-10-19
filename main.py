@@ -5,6 +5,10 @@ from collections import deque
 import os
 import logging
 import yt_dlp
+from dotenv import load_dotenv
+
+# Load environment variables from .env
+load_dotenv()
 
 # Logging
 logging.basicConfig(level=logging.INFO)
